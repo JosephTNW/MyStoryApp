@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">MyStoryApp</string>
+    <string name="login_desc">Masuk untuk mengirim cerita perjalanan belajarmu di dicoding!</string>
+    <string name="register_desc">Daftar sekarang untuk mulai bercerita pengalaman belajarmu di dicoding!</string>
+    <string name="input_email">Email anda:</string>
+    <string name="input_password">Password anda:</string>
+    <string name="input_name">Nama anda:</string>
+    <string name="person_icon">Simbol Pengguna</string>
+    <string name="name">Name</string>
+    <string name="description">Description</string>
+    <string name="preview_desc">Tampak awal fotomu</string>
+    <string name="desc_hint">Tambahkan deskripsi fotomu!</string>
+    <string name="take_photo">Kamera</string>
+    <string name="gallery_photo">Galeri</string>
+    <string name="upload">Unggah</string>
+    <string name="password_error">Password setidaknya memiliki 6 karakter</string>
+    <string name="email_error">Format email salah</string>
+    <string name="empty_error">Bagian ini harus diisi</string>
+    <string name="register_to_login">Sudah memiliki akun? Login disini!</string>
+    <string name="login_to_register">Belum memiliki akun? Register disini!</string>
+    <string name="photo_fail">Pengambilan gambar gagal.</string>
+    <string name="camera_fail">Kamera gagal muncul.</string>
+    <string name="no_permission">App tidak dapat izin untuk membuka kamera.</string>
+    <string name="no_file_yet">Mohon masukkan berkas terlebih dahulu.</string>
+    <string name="add_button_desc">Tekan tombol ini untuk menambahkan ceritamu</string>
+    <string name="logout_button">Keluar dari akun</string>
+    <string name="empty_widget">NO DATA</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">STORY BANNER</string>
+</resources>
