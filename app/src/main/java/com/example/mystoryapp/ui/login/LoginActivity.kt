@@ -48,8 +48,8 @@ class LoginActivity : AppCompatActivity() {
                 )
 
                 loginViewModel.getLoginResult().observe(this@LoginActivity) {
-                    val token = loginViewModel.getSavedToken()
-                    Toast.makeText(this@LoginActivity, token, Toast.LENGTH_SHORT).show()
+                        val token = loginViewModel.getSavedToken()
+                        Toast.makeText(this@LoginActivity, token, Toast.LENGTH_SHORT).show()
                     if (!it.error && it.message == "success") {
                         manifestLoading(false)
                         Intent(this@LoginActivity, StoryActivity::class.java).run {

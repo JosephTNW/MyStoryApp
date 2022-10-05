@@ -54,6 +54,9 @@ class StoryActivity : AppCompatActivity() {
                 Toast.makeText(this@StoryActivity, it.message, Toast.LENGTH_SHORT).show()
             }
         }
+
+        val token = storyViewModel.getSavedToken()
+        Toast.makeText(this@StoryActivity, token, Toast.LENGTH_SHORT).show()
         storyViewModel.getStoryList(this).observe(this) {
             if (it != null && !error && message == "success") {
                 storyViewModel.resetLocalStory()

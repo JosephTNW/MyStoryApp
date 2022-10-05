@@ -1,15 +1,7 @@
 package com.example.mystoryapp.data
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.text.method.TextKeyListener.clear
 import androidx.core.content.edit
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.edit
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import androidx.datastore.preferences.core.Preferences
 
 
 class SharedPref(context: Context) {
@@ -23,7 +15,7 @@ class SharedPref(context: Context) {
     }
 
     fun readLoginInfo(): String?{
-        return preferences.getString(TOKEN_KEY, "")
+        return preferences.getString(TOKEN_KEY, "nothing yet")
     }
 
     fun clearLoginInfo() {
@@ -34,7 +26,7 @@ class SharedPref(context: Context) {
 
 
     companion object {
-        private const val TOKEN_KEY = "token_key"
-        private const val LOGIN_INFO = "login_info"
+        const val TOKEN_KEY = "token_key"
+        const val LOGIN_INFO = "login_info"
     }
 }

@@ -69,6 +69,10 @@ class StoryViewModel(application: Application, context: Context) : AndroidViewMo
         return storyLists
     }
 
+    fun getSavedToken(): String? {
+        return pref.readLoginInfo()
+    }
+
     fun addLocalStory(photoUrl: String, name: String, description: String){
         CoroutineScope(Dispatchers.IO).launch {
             val storyData = StoryEntity(
