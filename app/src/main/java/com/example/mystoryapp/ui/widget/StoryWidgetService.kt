@@ -5,7 +5,8 @@ import android.widget.RemoteViewsService
 import com.example.mystoryapp.data.SharedPref
 
 class StoryWidgetService : RemoteViewsService() {
-    private lateinit var pref: SharedPref
-    override fun onGetViewFactory(intent: Intent): RemoteViewsService.RemoteViewsFactory =
+    val pref = SharedPref(this)
+
+    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
         StoryRemoteViewsFactory(this.applicationContext, pref)
 }

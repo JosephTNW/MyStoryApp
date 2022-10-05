@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,8 +22,6 @@ import kotlinx.coroutines.runBlocking
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailBinding
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "token_key")
-    private val pref = SharedPref.getInstance(dataStore)
 
     private fun manifestLoading(status: Boolean){
         binding.pbLoading.visibility = if (status) View.VISIBLE else View.GONE
@@ -54,7 +53,10 @@ class DetailActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.menu_logout -> {
                 runBlocking {
-                    pref.clearLoginInfo()
+                    val pref = getSharedPreferences("token_key", Context.MODE_PRIVATE)
+                    pref.edit(commit = true){
+                        clear()
+                    }
                 }
                 Intent(this@DetailActivity, LoginActivity::class.java).also {
                     startActivity(it)

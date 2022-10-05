@@ -1,6 +1,7 @@
 package com.example.mystoryapp.ui.story
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -23,10 +24,11 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class StoryViewModel(private val pref: SharedPref, application: Application) : AndroidViewModel(application){
+class StoryViewModel(application: Application, context: Context) : AndroidViewModel(application){
 
     val storyLists = MutableLiveData<ArrayList<GetStoryResult>>()
     val result = MutableLiveData<UsualResponse?>()
+    val pref = SharedPref(context)
 
     private var storyDao: StoryDao?
     private var storyDb: StoryDatabase?
@@ -36,8 +38,8 @@ class StoryViewModel(private val pref: SharedPref, application: Application) : A
         storyDao = storyDb?.StoryDao()
     }
 
-    fun getStoryList(): LiveData<ArrayList<GetStoryResult>>{
-        val client = Client(pref)
+    fun getStoryList(context: Context): LiveData<ArrayList<GetStoryResult>>{
+        val client = Client(context)
         client.instanceApi()
             .getStory()
             .enqueue(object : Callback<StoryGetResponse> {
@@ -86,5 +88,9 @@ class StoryViewModel(private val pref: SharedPref, application: Application) : A
         CoroutineScope(Dispatchers.Main).launch{
             storyDao?.clearStory()
         }
+    }
+
+    fun clearPrefs(){
+        pref.clearLoginInfo()
     }
 }

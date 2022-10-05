@@ -32,7 +32,7 @@ class StoryActivity : AppCompatActivity() {
     private lateinit var adapter: StoryListAdapter
     private lateinit var message: String
     private var error by Delegates.notNull<Boolean>()
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "token_key")
+    private val storyViewModel: StoryViewModel by viewModels()
 
     private fun manifestLoading(status: Boolean){
         binding.pbLoading.visibility = if (status) View.VISIBLE else View.GONE
@@ -43,9 +43,7 @@ class StoryActivity : AppCompatActivity() {
         binding = ActivityStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val pref = SharedPref.getInstance(dataStore)
-
-        val storyViewModel = ViewModelProvider(this, ViewModelFactory(pref, application))[StoryViewModel::class.java]
+        val storyViewModel = ViewModelProvider(this, ViewModelFactory(application, this))[StoryViewModel::class.java]
 
         adapter = StoryListAdapter()
         manifestLoading(true)
@@ -56,7 +54,7 @@ class StoryActivity : AppCompatActivity() {
                 Toast.makeText(this@StoryActivity, it.message, Toast.LENGTH_SHORT).show()
             }
         }
-        storyViewModel.getStoryList().observe(this) {
+        storyViewModel.getStoryList(this).observe(this) {
             if (it != null && !error && message == "success") {
                 storyViewModel.resetLocalStory()
                 adapter.submitList(it)
@@ -108,8 +106,7 @@ class StoryActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.menu_logout -> {
                 runBlocking {
-                    val pref = SharedPref.getInstance(dataStore)
-                    pref.clearLoginInfo()
+                    storyViewModel.clearPrefs()
                 }
                 Intent(this@StoryActivity, LoginActivity::class.java).also {
                     startActivity(it)

@@ -26,20 +26,14 @@ import kotlinx.coroutines.runBlocking
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "token_key")
-    private lateinit var checkToken: String
-    private var checked = false
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val pref = SharedPref.getInstance(dataStore)
-
         val loginViewModel =
-            ViewModelProvider(this, ViewModelFactory(pref, application))[LoginViewModel::class.java]
+            ViewModelProvider(this, ViewModelFactory(application, this))[LoginViewModel::class.java]
 
         binding.apply {
             edLoginEmail.buttonSwitch()
@@ -49,25 +43,14 @@ class LoginActivity : AppCompatActivity() {
                 manifestLoading(true)
                 loginViewModel.login(
                     edLoginEmail.text.toString(),
-                    edLoginPassword.text.toString()
+                    edLoginPassword.text.toString(),
+                    this@LoginActivity
                 )
 
-                loginViewModel.getSavedToken().observe(this@LoginActivity) { token: String ->
-                    if (token.isNotEmpty()) {
-                        checkToken = token
-                        checked = true
-                    } else {
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Token data not saved yet",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
                 loginViewModel.getLoginResult().observe(this@LoginActivity) {
-                    Toast.makeText(this@LoginActivity, checkToken, Toast.LENGTH_SHORT).show()
-                    if (!it.error && it.message == "success" && checked) {
+                    val token = loginViewModel.getSavedToken()
+                    Toast.makeText(this@LoginActivity, token, Toast.LENGTH_SHORT).show()
+                    if (!it.error && it.message == "success") {
                         manifestLoading(false)
                         Intent(this@LoginActivity, StoryActivity::class.java).run {
                             startActivity(this)

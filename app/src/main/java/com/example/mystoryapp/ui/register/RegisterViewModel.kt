@@ -1,5 +1,6 @@
 package com.example.mystoryapp.ui.register
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.mystoryapp.data.SharedPref
@@ -12,13 +13,15 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class RegisterViewModel(private val pref: SharedPref) : ViewModel() {
+class RegisterViewModel(context: Context) : ViewModel() {
 
     val regResult = MutableLiveData<UsualResponse>()
     val logResult = MutableLiveData<LoginResult>()
+    val pref = SharedPref(context)
 
-    fun sendRegistration(name: String, email: String, password: String) {
-        val client = Client(pref)
+
+    fun sendRegistration(name: String, email: String, password: String, context: Context) {
+        val client = Client(context)
         client.instanceApi()
             .register(name, email, password)
             .enqueue(object : Callback<UsualResponse> {
@@ -41,8 +44,8 @@ class RegisterViewModel(private val pref: SharedPref) : ViewModel() {
         return regResult
     }
 
-    fun login(email : String, password: String) {
-            val client = Client(pref)
+    fun login(email : String, password: String, context: Context) {
+            val client = Client(context)
             client.instanceApi()
                 .login(email, password)
                 .enqueue(object : Callback<LoginResponse>{
@@ -64,7 +67,7 @@ class RegisterViewModel(private val pref: SharedPref) : ViewModel() {
                 })
     }
 
-    fun getLoginInfo() : LiveData<String> {
-        return pref.readLoginInfo().asLiveData()
+    fun getLoginInfo(): String?{
+        return pref.readLoginInfo()
     }
 }

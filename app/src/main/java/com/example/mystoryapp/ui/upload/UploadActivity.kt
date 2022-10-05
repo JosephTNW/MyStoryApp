@@ -15,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -35,15 +36,12 @@ import java.io.File
 class UploadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUploadBinding
     private val uploadViewModel: UploadViewModel by viewModels()
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "token_key")
     private var getFile: File ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val pref = SharedPref.getInstance(dataStore)
 
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(
@@ -78,7 +76,7 @@ class UploadActivity : AppCompatActivity() {
                         file.name,
                         reqImgFile
                     )
-                    uploadViewModel.sendStory(pref, imgMultiPart, desc)
+                    uploadViewModel.sendStory(imgMultiPart, desc, this@UploadActivity)
                     val response = uploadViewModel.getUsualResponse()
                     Toast.makeText(this@UploadActivity, response.value?.message, Toast.LENGTH_SHORT).show()
                     Intent(this@UploadActivity, StoryActivity::class.java). also {
@@ -118,8 +116,10 @@ class UploadActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.menu_logout -> {
                 runBlocking {
-                    val pref = SharedPref.getInstance(dataStore)
-                    pref.clearLoginInfo()
+                    val pref = getSharedPreferences("token_key", Context.MODE_PRIVATE)
+                    pref.edit(commit = true){
+                        clear()
+                    }
                 }
                 Intent(this@UploadActivity, LoginActivity::class.java).also {
                     startActivity(it)

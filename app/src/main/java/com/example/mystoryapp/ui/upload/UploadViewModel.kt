@@ -96,8 +96,8 @@ class UploadViewModel: ViewModel() {
         return File.createTempFile(timeStamp, ".jpg", storageDir)
     }
 
-    fun sendStory(pref: SharedPref, imgMultipart: MultipartBody.Part, desc: RequestBody){
-        val service = Client(pref).instanceApi().addStory(imgMultipart, desc)
+    fun sendStory(imgMultipart: MultipartBody.Part, desc: RequestBody, context: Context){
+        val service = Client(context).instanceApi().addStory(imgMultipart, desc)
         service.enqueue(object : Callback<UsualResponse> {
             override fun onResponse(call: Call<UsualResponse>, response: Response<UsualResponse>) {
                 if (response.isSuccessful) {

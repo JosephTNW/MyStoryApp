@@ -24,8 +24,6 @@ import com.example.mystoryapp.ui.story.StoryActivity
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
-    private val Context.dataStore: DataStore<Preferences> ?by preferencesDataStore(name = "token_key")
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,17 +31,18 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val registerViewModel =
-                ViewModelProvider(this, ViewModelFactory(SharedPref.getInstance(dataStore!!), application))[RegisterViewModel::class.java]
+                ViewModelProvider(this, ViewModelFactory(application, this))[RegisterViewModel::class.java]
 
-            registerViewModel.getLoginInfo().observe(this) { token: String ->
-                if (token.isNotEmpty()) {
-                    manifestLoading(true)
-                    Intent(this@RegisterActivity, StoryActivity::class.java).also {
-                        startActivity(it)
-                    }
-                    manifestLoading(false)
-                }
+        val token = registerViewModel.getLoginInfo().toString()
+        manifestLoading(true)
+
+        if (token.isNotEmpty()){
+            Intent(this@RegisterActivity, StoryActivity::class.java).also {
+                startActivity(it)
             }
+        }
+
+        manifestLoading(false)
 
         binding.apply {
             buttonSwitch(edRegisterName)
@@ -54,7 +53,8 @@ class RegisterActivity : AppCompatActivity() {
                 registerViewModel.sendRegistration(
                     edRegisterName.text.toString(),
                     edRegisterEmail.text.toString(),
-                    edRegisterPassword.text.toString()
+                    edRegisterPassword.text.toString(),
+                    this@RegisterActivity
                 )
 
                 registerViewModel.getRegResult().observe(this@RegisterActivity) {
@@ -67,7 +67,8 @@ class RegisterActivity : AppCompatActivity() {
                     if (!it.error && it.message == "User Created") {
                         registerViewModel.login(
                             edRegisterEmail.text.toString(),
-                            edRegisterPassword.text.toString()
+                            edRegisterPassword.text.toString(),
+                            this@RegisterActivity
                         )
                         Intent(this@RegisterActivity, StoryActivity::class.java).run {
                             startActivity(this)
