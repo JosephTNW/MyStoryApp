@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="white_smoke">#FFF5F5F5</color>
     <color name="dicoding_theme">#2D3E50</color>
+    <color name="dicoding_dark">#1F2A36</color>
     <color name="dicoding_disabled">#6D8FAA</color>
     <color name="light_blue_50">#FFE1F5FE</color>
     <color name="light_blue_200">#FF81D4FA</color>

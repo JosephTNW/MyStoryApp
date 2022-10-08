@@ -9,12 +9,11 @@ import android.util.AttributeSet
 import android.util.Patterns
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.TypedArrayUtils.getString
 import com.example.mystoryapp.R
 
 class CustomEditText : AppCompatEditText {
 
-    var textValid: Boolean ?= null
+    var textValid: Boolean? = null
 
     private lateinit var errorImage: Drawable
 
@@ -26,14 +25,18 @@ class CustomEditText : AppCompatEditText {
         init()
     }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
         init()
     }
 
     private fun init() {
         errorImage = ContextCompat.getDrawable(context, R.drawable.error_24) as Drawable
 
-        addTextChangedListener(object: TextWatcher {
+        addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
             }
@@ -44,8 +47,8 @@ class CustomEditText : AppCompatEditText {
 
             override fun afterTextChanged(s: Editable?) {
 
-                if (text != null && text?.isNotEmpty() == true){
-                    if (inputType == InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_PASSWORD){
+                if (text != null && text?.isNotEmpty() == true) {
+                    if (inputType == InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_PASSWORD) {
                         if (length() < 6) {
                             error = context.getString(R.string.password_error)
                             showError()
@@ -54,7 +57,7 @@ class CustomEditText : AppCompatEditText {
                             textValid = true
                             hideError()
                         }
-                    } else if (inputType == InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS){
+                    } else if (inputType == InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS) {
                         if (!Patterns.EMAIL_ADDRESS.matcher(text.toString()).matches()) {
                             error = context.getString(R.string.email_error)
                             showError()
@@ -76,6 +79,7 @@ class CustomEditText : AppCompatEditText {
 
         })
     }
+
     private fun showError() {
         setDrawable(endOfTheText = errorImage)
     }
@@ -89,7 +93,7 @@ class CustomEditText : AppCompatEditText {
         topOfTheText: Drawable? = null,
         endOfTheText: Drawable? = null,
         bottomOfTheText: Drawable? = null
-    ){
+    ) {
         setCompoundDrawablesWithIntrinsicBounds(
             startOfTheText,
             topOfTheText,

@@ -14,7 +14,7 @@ abstract class StoryDatabase : RoomDatabase() {
         @Volatile
         private var instance: StoryDatabase? = null
         fun getInstance(context: Context): StoryDatabase =
-            instance ?: synchronized(this){
+            instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     StoryDatabase::class.java, "Story.db"

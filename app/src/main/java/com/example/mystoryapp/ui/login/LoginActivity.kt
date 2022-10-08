@@ -1,28 +1,18 @@
 package com.example.mystoryapp.ui.login
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
-import com.example.mystoryapp.data.SharedPref
-import com.example.mystoryapp.data.UserInformation
 import com.example.mystoryapp.databinding.ActivityLoginBinding
-import com.example.mystoryapp.ui.ViewModelFactory
 import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.register.RegisterActivity
-import com.example.mystoryapp.ui.register.RegisterViewModel
 import com.example.mystoryapp.ui.story.StoryActivity
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import com.example.mystoryapp.utils.ViewModelFactory
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -48,12 +38,12 @@ class LoginActivity : AppCompatActivity() {
                 )
 
                 loginViewModel.getLoginResult().observe(this@LoginActivity) {
-                        val token = loginViewModel.getSavedToken()
-                        Toast.makeText(this@LoginActivity, token, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, it.message, Toast.LENGTH_SHORT).show()
                     if (!it.error && it.message == "success") {
                         manifestLoading(false)
                         Intent(this@LoginActivity, StoryActivity::class.java).run {
                             startActivity(this)
+                            finish()
                         }
                     }
                 }
@@ -65,6 +55,11 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onBackPressed() {
+        finish()
+        super.onBackPressed()
     }
 
     private fun manifestLoading(status: Boolean) {

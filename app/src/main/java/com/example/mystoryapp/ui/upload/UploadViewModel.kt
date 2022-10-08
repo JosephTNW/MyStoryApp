@@ -3,35 +3,42 @@ package com.example.mystoryapp.ui.upload
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Environment
-import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.mystoryapp.data.SharedPref
+import com.example.mystoryapp.data.local.room.StoryDao
+import com.example.mystoryapp.data.local.room.StoryDatabase
 import com.example.mystoryapp.data.remote.Client
 import com.example.mystoryapp.data.response.UsualResponse
-import com.example.mystoryapp.ui.timeStamp
+import com.example.mystoryapp.utils.timeStamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.*
-import java.text.SimpleDateFormat
-import java.util.*
 
-class UploadViewModel: ViewModel() {
+class UploadViewModel(application: Application, context: Context) : AndroidViewModel(application) {
 
     val usualResponse = MutableLiveData<UsualResponse>()
     val errorMessage = MutableLiveData<String>()
+    private val pref = SharedPref(context)
+
+    private var storyDao: StoryDao?
+    private var storyDb: StoryDatabase?
+
+    init {
+        storyDb = StoryDatabase.getInstance(application)
+        storyDao = storyDb?.StoryDao()
+    }
 
     fun rotateBitmap(bitmap: Bitmap, isBackCamera: Boolean = false): Bitmap {
         val matrix = Matrix()
@@ -96,7 +103,7 @@ class UploadViewModel: ViewModel() {
         return File.createTempFile(timeStamp, ".jpg", storageDir)
     }
 
-    fun sendStory(imgMultipart: MultipartBody.Part, desc: RequestBody, context: Context){
+    fun sendStory(imgMultipart: MultipartBody.Part, desc: RequestBody, context: Context) {
         val service = Client(context).instanceApi().addStory(imgMultipart, desc)
         service.enqueue(object : Callback<UsualResponse> {
             override fun onResponse(call: Call<UsualResponse>, response: Response<UsualResponse>) {
@@ -118,7 +125,13 @@ class UploadViewModel: ViewModel() {
         })
     }
 
-    fun getUsualResponse() : LiveData<UsualResponse>{
-        return usualResponse
+    fun resetLocalStory() {
+        CoroutineScope(Dispatchers.IO).launch {
+            storyDao?.clearStory()
+        }
+    }
+
+    fun clearPrefs() {
+        pref.clearLoginInfo()
     }
 }

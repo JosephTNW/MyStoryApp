@@ -1,26 +1,19 @@
 package com.example.mystoryapp.ui.register
 
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.mystoryapp.data.SharedPref
-import com.example.mystoryapp.data.UserInformation
 import com.example.mystoryapp.databinding.ActivityRegisterBinding
-import com.example.mystoryapp.ui.ViewModelFactory
 import com.example.mystoryapp.ui.customview.CustomEditText
-import com.example.mystoryapp.ui.detail.DetailActivity
 import com.example.mystoryapp.ui.login.LoginActivity
 import com.example.mystoryapp.ui.story.StoryActivity
+import com.example.mystoryapp.utils.Constants.NO_TOKEN
+import com.example.mystoryapp.utils.ViewModelFactory
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
@@ -31,14 +24,19 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val registerViewModel =
-                ViewModelProvider(this, ViewModelFactory(application, this))[RegisterViewModel::class.java]
+            ViewModelProvider(
+                this,
+                ViewModelFactory(application, this)
+            )[RegisterViewModel::class.java]
 
-        val token = registerViewModel.getLoginInfo().toString()
+        val token = registerViewModel.getLoginInfo()
         manifestLoading(true)
 
-        if (token.isNotEmpty()){
-            Intent(this@RegisterActivity, StoryActivity::class.java).also {
-                startActivity(it)
+        if (token != null) {
+            if (token != NO_TOKEN) {
+                Intent(this@RegisterActivity, StoryActivity::class.java).also {
+                    startActivity(it)
+                }
             }
         }
 
@@ -84,6 +82,11 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        onDestroy()
     }
 
     private fun manifestLoading(status: Boolean) {

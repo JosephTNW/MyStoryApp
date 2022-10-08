@@ -1,12 +1,12 @@
 package com.example.mystoryapp.ui.upload
 
-import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_GET_CONTENT
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -15,17 +15,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.ViewModelProvider
 import com.example.mystoryapp.R
-import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.databinding.ActivityUploadBinding
 import com.example.mystoryapp.ui.camera.CameraActivity
 import com.example.mystoryapp.ui.login.LoginActivity
 import com.example.mystoryapp.ui.story.StoryActivity
-import kotlinx.coroutines.runBlocking
+import com.example.mystoryapp.utils.ViewModelFactory
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -36,12 +32,17 @@ import java.io.File
 class UploadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUploadBinding
     private val uploadViewModel: UploadViewModel by viewModels()
-    private var getFile: File ?= null
+    private var getFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val uploadViewModel = ViewModelProvider(
+            this,
+            ViewModelFactory(application, this)
+        )[UploadViewModel::class.java]
 
         if (!allPermissionsGranted()) {
             ActivityCompat.requestPermissions(
@@ -77,13 +78,16 @@ class UploadActivity : AppCompatActivity() {
                         reqImgFile
                     )
                     uploadViewModel.sendStory(imgMultiPart, desc, this@UploadActivity)
-                    val response = uploadViewModel.getUsualResponse()
-                    Toast.makeText(this@UploadActivity, response.value?.message, Toast.LENGTH_SHORT).show()
-                    Intent(this@UploadActivity, StoryActivity::class.java). also {
+                    Intent(this@UploadActivity, StoryActivity::class.java).also {
                         startActivity(it)
+                        finishAffinity()
                     }
                 } else {
-                    Toast.makeText(this@UploadActivity, resources.getString(R.string.no_file_yet), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@UploadActivity,
+                        resources.getString(R.string.no_file_yet),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -95,7 +99,7 @@ class UploadActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS){
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (!allPermissionsGranted()) {
                 Toast.makeText(
                     this,
@@ -108,22 +112,23 @@ class UploadActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.logout_menu, menu)
+        menuInflater.inflate(R.menu.main_menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_logout -> {
-                runBlocking {
-                    val pref = getSharedPreferences("token_key", Context.MODE_PRIVATE)
-                    pref.edit(commit = true){
-                        clear()
-                    }
-                }
+                uploadViewModel.clearPrefs()
+                uploadViewModel.resetLocalStory()
                 Intent(this@UploadActivity, LoginActivity::class.java).also {
                     startActivity(it)
+                    finishAffinity()
                 }
+            }
+            R.id.menu_language -> {
+                val lIntent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                startActivity(lIntent)
             }
         }
         return true
@@ -140,7 +145,8 @@ class UploadActivity : AppCompatActivity() {
             val myFile = it.data?.getSerializableExtra("photo") as File
             val isBackCam = it.data?.getBooleanExtra("isBackCam", true) as Boolean
             getFile = myFile
-            val result = uploadViewModel.rotateBitmap(BitmapFactory.decodeFile(myFile.path), isBackCam)
+            val result =
+                uploadViewModel.rotateBitmap(BitmapFactory.decodeFile(myFile.path), isBackCam)
 
             binding.ivPreview.setImageBitmap(result)
         }
@@ -148,7 +154,7 @@ class UploadActivity : AppCompatActivity() {
 
     private val launcherIntentGallery = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) {result ->
+    ) { result ->
         if (result.resultCode == RESULT_OK) {
             val img: Uri = result.data?.data as Uri
             val file = uploadViewModel.uriToFile(img, this@UploadActivity)

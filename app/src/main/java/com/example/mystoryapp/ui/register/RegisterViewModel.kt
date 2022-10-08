@@ -2,7 +2,10 @@ package com.example.mystoryapp.ui.register
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.data.remote.Client
 import com.example.mystoryapp.data.response.LoginResponse
@@ -40,34 +43,34 @@ class RegisterViewModel(context: Context) : ViewModel() {
             })
     }
 
-    fun getRegResult(): LiveData<UsualResponse>{
+    fun getRegResult(): LiveData<UsualResponse> {
         return regResult
     }
 
-    fun login(email : String, password: String, context: Context) {
-            val client = Client(context)
-            client.instanceApi()
-                .login(email, password)
-                .enqueue(object : Callback<LoginResponse>{
-                    override fun onResponse(
-                        call: Call<LoginResponse>,
-                        response: Response<LoginResponse>
-                    ) {
-                        if (response.isSuccessful) {
-                            logResult.postValue(response.body()?.loginResult)
-                            viewModelScope.launch {
-                                logResult.value?.let { pref.saveLoginInfo(it.token) }
-                            }
+    fun login(email: String, password: String, context: Context) {
+        val client = Client(context)
+        client.instanceApi()
+            .login(email, password)
+            .enqueue(object : Callback<LoginResponse> {
+                override fun onResponse(
+                    call: Call<LoginResponse>,
+                    response: Response<LoginResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        logResult.postValue(response.body()?.loginResult)
+                        viewModelScope.launch {
+                            logResult.value?.let { pref.saveLoginInfo(it.token) }
                         }
                     }
+                }
 
-                    override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                        t.message?.let { Log.d("Failed", it)}
-                    }
-                })
+                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                    t.message?.let { Log.d("Failed", it) }
+                }
+            })
     }
 
-    fun getLoginInfo(): String?{
+    fun getLoginInfo(): String? {
         return pref.readLoginInfo()
     }
 }

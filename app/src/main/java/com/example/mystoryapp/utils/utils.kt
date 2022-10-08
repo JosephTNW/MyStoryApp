@@ -1,4 +1,4 @@
-package com.example.mystoryapp.ui
+package com.example.mystoryapp.utils
 
 import java.text.SimpleDateFormat
 import java.util.*
@@ -9,4 +9,3 @@ val timeStamp: String = SimpleDateFormat(
     FILENAME,
     Locale.US
 ).format(System.currentTimeMillis())
-

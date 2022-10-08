@@ -2,35 +2,51 @@ package com.example.mystoryapp.ui.widget
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Binder
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
-import androidx.core.os.bundleOf
 import com.bumptech.glide.Glide
 import com.example.mystoryapp.R
-import com.example.mystoryapp.data.SharedPref
-import com.example.mystoryapp.data.local.entity.StoryEntity
 import com.example.mystoryapp.data.local.room.StoryDao
 import com.example.mystoryapp.data.local.room.StoryDatabase
-import com.example.mystoryapp.data.response.GetStoryResult
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
-internal class StoryRemoteViewsFactory(private val mContext: Context, private val pref: SharedPref) : RemoteViewsService.RemoteViewsFactory {
-    private var mWidgetItems = listOf<StoryEntity>()
+internal class StoryRemoteViewsFactory(private val mContext: Context) :
+    RemoteViewsService.RemoteViewsFactory {
+    private val mWidgetItems = arrayListOf<Bitmap>()
+    private val job = SupervisorJob()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
     private lateinit var dao: StoryDao
-
-    private fun getDataDB() {
-        runBlocking {
-            mWidgetItems = dao.getLocalStory()
-        }
-    }
 
     override fun onCreate() {
         dao = StoryDatabase.getInstance(mContext.applicationContext).StoryDao()
-        getDataDB()
     }
 
     override fun onDataSetChanged() {
-        getDataDB()
+        val tokenIdentifier = Binder.clearCallingIdentity()
+        coroutineScope.launch {
+            try {
+                dao.getLocalStory().map {
+                    val bitmap = try {
+                        Glide.with(mContext)
+                            .asBitmap()
+                            .load(it.photoUrl)
+                            .submit()
+                            .get()
+                    } catch (e: Exception) {
+                        BitmapFactory.decodeResource(mContext.resources, R.drawable.no_image)
+                    }
+                    mWidgetItems.add(bitmap)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        Binder.restoreCallingIdentity(tokenIdentifier)
     }
 
     override fun onDestroy() {
@@ -41,16 +57,8 @@ internal class StoryRemoteViewsFactory(private val mContext: Context, private va
 
     override fun getViewAt(position: Int): RemoteViews {
         val rv = RemoteViews(mContext.packageName, R.layout.story_stack_widget)
-        try {
-            val bitmap: Bitmap = Glide.with(mContext.applicationContext)
-                .asBitmap()
-                .load(mWidgetItems[position].photoUrl)
-                .submit()
-                .get()
-            rv.setImageViewBitmap(R.id.stack_story, bitmap)
-        } catch (e: Exception){
-            e.printStackTrace()
-        }
+        rv.setImageViewBitmap(R.id.front_image, mWidgetItems[position])
+
         return rv
     }
 

@@ -1,8 +1,8 @@
 package com.example.mystoryapp.data.remote
 
 import android.content.Context
-import androidx.viewbinding.BuildConfig
 import com.example.mystoryapp.data.SharedPref
+import com.example.mystoryapp.utils.Constants.MAIN_URL
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit
 
 class Client(context: Context) {
 
-    private val mainUrl = "https://story-api.dicoding.dev/v1/"
     private val interceptor = HttpLoggingInterceptor()
         .apply {
             this.level = HttpLoggingInterceptor.Level.BODY
@@ -44,12 +43,12 @@ class Client(context: Context) {
         .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(mainUrl)
+        .baseUrl(MAIN_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .client(client)
         .build()
 
-    fun instanceApi() : Api {
+    fun instanceApi(): Api {
         return retrofit.create(Api::class.java)
     }
 }

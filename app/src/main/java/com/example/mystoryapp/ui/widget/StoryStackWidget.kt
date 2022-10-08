@@ -9,7 +9,6 @@ import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.net.toUri
 import com.example.mystoryapp.R
-import com.example.mystoryapp.databinding.StoryStackWidgetBinding
 
 class StoryStackWidget : AppWidgetProvider() {
 
@@ -33,7 +32,8 @@ class StoryStackWidget : AppWidgetProvider() {
             it.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }
 
-        val toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+        val toastPendingIntent = PendingIntent.getBroadcast(
+            context, 0, toastIntent,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             else 0
@@ -63,6 +63,7 @@ class StoryStackWidget : AppWidgetProvider() {
     }
 
     companion object {
-        private const val TOAST_ACTION = "com.example."
+        private const val TOAST_ACTION =
+            "com.example.mystoryapp.ui.widget.StoryStackWidget.TOAST_ACTION"
     }
 }

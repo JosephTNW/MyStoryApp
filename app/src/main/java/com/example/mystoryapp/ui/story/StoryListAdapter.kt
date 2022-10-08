@@ -9,34 +9,34 @@ import com.bumptech.glide.Glide
 import com.example.mystoryapp.data.response.GetStoryResult
 import com.example.mystoryapp.databinding.StoryListBinding
 
-class StoryListAdapter : ListAdapter<GetStoryResult, StoryListAdapter.StoryViewHolder>(DIFFUTIL_CALLBACK){
+class StoryListAdapter :
+    ListAdapter<GetStoryResult, StoryListAdapter.StoryViewHolder>(DIFFUTIL_CALLBACK) {
 
-    private var onItemClickCallback: OnItemClickCallback ?= null
+    private var onItemClickCallback: OnItemClickCallback? = null
 
     interface OnItemClickCallback {
-        fun onItemClicked(data: GetStoryResult)
+        fun onItemClicked(data: GetStoryResult, view: StoryListBinding)
     }
 
-    fun setOnItemClickCallback (onItemClickCallback: OnItemClickCallback){
+    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
         this.onItemClickCallback = onItemClickCallback
     }
 
     inner class StoryViewHolder(private val bind: StoryListBinding) :
-            RecyclerView.ViewHolder(bind.root) {
-                fun bind(getStory: GetStoryResult) {
-                    bind.root.setOnClickListener {
-                        onItemClickCallback?.onItemClicked(getStory)
-                    }
-
-                    bind.apply {
-                        Glide.with(itemView)
-                            .load(getStory.photoUrl)
-                            .into(ivItemPhoto)
-                        tvItemName.text = getStory.name
-                    }
-
-                }
+        RecyclerView.ViewHolder(bind.root) {
+        fun bind(getStory: GetStoryResult) {
+            bind.root.setOnClickListener {
+                onItemClickCallback?.onItemClicked(getStory, bind)
             }
+
+            bind.apply {
+                Glide.with(itemView)
+                    .load(getStory.photoUrl)
+                    .into(ivItemPhoto)
+                tvItemName.text = getStory.name
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StoryViewHolder {
         val view = StoryListBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -52,7 +52,7 @@ class StoryListAdapter : ListAdapter<GetStoryResult, StoryListAdapter.StoryViewH
     }
 
     companion object {
-        private val DIFFUTIL_CALLBACK = object  : DiffUtil.ItemCallback<GetStoryResult>() {
+        private val DIFFUTIL_CALLBACK = object : DiffUtil.ItemCallback<GetStoryResult>() {
             override fun areItemsTheSame(
                 oldItem: GetStoryResult,
                 newItem: GetStoryResult

@@ -1,41 +1,92 @@
 package com.example.mystoryapp.ui.story
 
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.util.Pair
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mystoryapp.R
-import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.data.response.GetStoryResult
 import com.example.mystoryapp.databinding.ActivityStoryBinding
-import com.example.mystoryapp.ui.ViewModelFactory
+import com.example.mystoryapp.databinding.StoryListBinding
 import com.example.mystoryapp.ui.detail.DetailActivity
 import com.example.mystoryapp.ui.login.LoginActivity
-import com.example.mystoryapp.ui.login.LoginViewModel
 import com.example.mystoryapp.ui.upload.UploadActivity
-import com.example.mystoryapp.ui.widget.StoryRemoteViewsFactory
-import kotlinx.coroutines.runBlocking
-import kotlin.properties.Delegates
+import com.example.mystoryapp.utils.Constants
+import com.example.mystoryapp.utils.ViewModelFactory
 
 class StoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStoryBinding
     private lateinit var adapter: StoryListAdapter
-    private lateinit var message: String
-    private var error by Delegates.notNull<Boolean>()
     private val storyViewModel: StoryViewModel by viewModels()
 
-    private fun manifestLoading(status: Boolean){
+    private fun manifestLoading(status: Boolean) {
         binding.pbLoading.visibility = if (status) View.VISIBLE else View.GONE
+    }
+
+    private val postStoryReload =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            getStories()
+        }
+
+    private fun getStories() {
+        manifestLoading(true)
+
+        val storyViewModel =
+            ViewModelProvider(this, ViewModelFactory(application, this))[StoryViewModel::class.java]
+
+        storyViewModel.getStoryList(this)
+
+        adapter = StoryListAdapter()
+        storyViewModel.getResult().observe(this@StoryActivity) {
+            if (it != null) {
+                Toast.makeText(this@StoryActivity, it.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        storyViewModel.getStoryResult().observe(this) {
+            if (it != null) {
+                storyViewModel.resetLocalStory()
+                adapter.submitList(it)
+                storyViewModel.addLocalStory(it)
+            }
+        }
+        manifestLoading(false)
+
+        binding.apply {
+            rvListStory.layoutManager = LinearLayoutManager(this@StoryActivity)
+            rvListStory.setHasFixedSize(true)
+            rvListStory.adapter = adapter
+            btnAddStory.setOnClickListener {
+                Intent(this@StoryActivity, UploadActivity::class.java).also {
+                    postStoryReload.launch(it)
+                }
+            }
+        }
+
+        adapter.setOnItemClickCallback(object : StoryListAdapter.OnItemClickCallback {
+            override fun onItemClicked(data: GetStoryResult, view: StoryListBinding) {
+                val optionsCompat: ActivityOptionsCompat =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        this@StoryActivity,
+                        Pair(view.ivItemPhoto, "image"),
+                        Pair(view.tvItemName, "name"),
+                    )
+                Intent(this@StoryActivity, DetailActivity::class.java).run {
+                    putExtra(Constants.DETAIL_STORY, data)
+                    startActivity(this, optionsCompat.toBundle())
+                }
+            }
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,77 +94,27 @@ class StoryActivity : AppCompatActivity() {
         binding = ActivityStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val storyViewModel = ViewModelProvider(this, ViewModelFactory(application, this))[StoryViewModel::class.java]
-
-        adapter = StoryListAdapter()
-        manifestLoading(true)
-        storyViewModel.getResult().observe(this@StoryActivity) {
-            if (it != null) {
-                message = it.message
-                error = it.error
-                Toast.makeText(this@StoryActivity, it.message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        val token = storyViewModel.getSavedToken()
-        Toast.makeText(this@StoryActivity, token, Toast.LENGTH_SHORT).show()
-        storyViewModel.getStoryList(this).observe(this) {
-            if (it != null && !error && message == "success") {
-                storyViewModel.resetLocalStory()
-                adapter.submitList(it)
-                var i = 0
-                while (i < 5){
-                    storyViewModel.addLocalStory(it[i].photoUrl, it[i].name, it[i].description)
-                    i++
-                }
-            }
-        }
-        manifestLoading(false)
-
-        adapter.setOnItemClickCallback(object : StoryListAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: GetStoryResult) {
-                Intent(this@StoryActivity, DetailActivity::class.java).also{
-                    val getStory = GetStoryResult(
-                        data.id,
-                        data.name,
-                        data.description,
-                        data.photoUrl,
-                        data.createdAt,
-                        data.lat,
-                        data.lon
-                    )
-                    it.putExtra(DetailActivity.STORY, getStory)
-                    startActivity(it)
-                }
-            }
-        })
-
-        binding.apply {
-            rvListStory.layoutManager = LinearLayoutManager(this@StoryActivity)
-            rvListStory.setHasFixedSize(true)
-            rvListStory.adapter = adapter
-            btnAddStory.setOnClickListener {
-                Intent(this@StoryActivity, UploadActivity::class.java). also {
-                    startActivity(it)
-                }
-            }
-        }
+        getStories()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.logout_menu, menu)
+        menuInflater.inflate(R.menu.main_menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_logout -> {
-                runBlocking {
-                    storyViewModel.clearPrefs()
-                }
+                storyViewModel.clearPrefs()
+                storyViewModel.resetLocalStory()
                 Intent(this@StoryActivity, LoginActivity::class.java).also {
                     startActivity(it)
+                    finishAffinity()
                 }
+            }
+            R.id.menu_language -> {
+                val lIntent = Intent(Settings.ACTION_LOCALE_SETTINGS)
+                startActivity(lIntent)
             }
         }
         return true
