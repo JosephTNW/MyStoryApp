@@ -6,12 +6,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.mystoryapp.databinding.ActivityRegisterBinding
 import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.login.LoginActivity
 import com.example.mystoryapp.ui.story.StoryActivity
+import com.example.mystoryapp.ui.upload.UploadViewModel
 import com.example.mystoryapp.utils.Constants.NO_TOKEN
 import com.example.mystoryapp.utils.ViewModelFactory
 
@@ -23,11 +25,10 @@ class RegisterActivity : AppCompatActivity() {
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val registerViewModel =
-            ViewModelProvider(
-                this,
-                ViewModelFactory(application, this)
-            )[RegisterViewModel::class.java]
+        val factory: ViewModelFactory = ViewModelFactory.getInstance(this)
+        val registerViewModel : RegisterViewModel by viewModels{
+            factory
+        }
 
         val token = registerViewModel.getLoginInfo()
         manifestLoading(true)
@@ -51,8 +52,7 @@ class RegisterActivity : AppCompatActivity() {
                 registerViewModel.sendRegistration(
                     edRegisterName.text.toString(),
                     edRegisterEmail.text.toString(),
-                    edRegisterPassword.text.toString(),
-                    this@RegisterActivity
+                    edRegisterPassword.text.toString()
                 )
 
                 registerViewModel.getRegResult().observe(this@RegisterActivity) {
@@ -65,11 +65,11 @@ class RegisterActivity : AppCompatActivity() {
                     if (!it.error && it.message == "User Created") {
                         registerViewModel.login(
                             edRegisterEmail.text.toString(),
-                            edRegisterPassword.text.toString(),
-                            this@RegisterActivity
+                            edRegisterPassword.text.toString()
                         )
                         Intent(this@RegisterActivity, StoryActivity::class.java).run {
                             startActivity(this)
+                            finishAffinity()
                         }
                     }
                 }

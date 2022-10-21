@@ -1,6 +1,7 @@
 package com.example.mystoryapp.data.remote
 
 import android.content.Context
+import androidx.viewbinding.BuildConfig
 import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.utils.Constants.MAIN_URL
 import okhttp3.Interceptor
@@ -12,10 +13,12 @@ import java.util.concurrent.TimeUnit
 
 class Client(context: Context) {
 
-    private val interceptor = HttpLoggingInterceptor()
-        .apply {
-            this.level = HttpLoggingInterceptor.Level.BODY
-        }
+    private val interceptor = if (BuildConfig.DEBUG) {
+        HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+    } else {
+        HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
+    }
+
     private val httpClient = Interceptor { chain ->
         val original = chain.request()
         val sharedPref = SharedPref(context)

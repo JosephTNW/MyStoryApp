@@ -32,10 +32,16 @@
     <string name="login_to_register">Have yet to make an account? Register here!</string>
     <string name="photo_fail">Photo capture failed.</string>
     <string name="front_image">This is the front image.</string>
+    <string name="choose_img">Choose an image.</string>
+    <string name="exit">Do you want to exit the app?</string>
+    <string name="exit_message">Click yes to exit!</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="camera_fail">Camera failed.</string>
     <string name="take_photo_desc">Press this button to take your picture.</string>
     <string name="switch_camera_desc">Press this button to switch your camera.</string>
-    <string name="no_permission">App permission to access the camera is rejected.</string>
+    <string name="no_permission_camera">App permission to access the camera is rejected.</string>
+    <string name="no_permission_location">App permission to access your location is rejected.</string>
     <string name="no_file_yet">Please insert a file first.</string>
     <string name="add_button_desc">Press this button to add your story</string>
     <string name="logout_button">Log out</string>
@@ -46,4 +52,8 @@
     <string name="empty_widget">NO DATA</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">STORY BANNER</string>
+    <string name="map_button">Stories around you.</string>
+    <string name="title_activity_maps">Story Map</string>
+    <string name="curr_location">You are here</string>
+    <string name="GPS_off">Turn on your location to use maps</string>
 </resources>

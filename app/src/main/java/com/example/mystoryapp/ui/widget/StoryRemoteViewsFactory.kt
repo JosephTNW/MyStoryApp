@@ -6,20 +6,20 @@ import android.graphics.BitmapFactory
 import android.os.Binder
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import androidx.lifecycle.map
 import com.bumptech.glide.Glide
 import com.example.mystoryapp.R
 import com.example.mystoryapp.data.local.room.StoryDao
 import com.example.mystoryapp.data.local.room.StoryDatabase
-import kotlinx.coroutines.CoroutineScope
+import com.example.mystoryapp.data.repository.StoryRepository
+import com.example.mystoryapp.di.Injection
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
 
 internal class StoryRemoteViewsFactory(private val mContext: Context) :
     RemoteViewsService.RemoteViewsFactory {
     private val mWidgetItems = arrayListOf<Bitmap>()
-    private val job = SupervisorJob()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
     private lateinit var dao: StoryDao
 
     override fun onCreate() {
@@ -28,9 +28,9 @@ internal class StoryRemoteViewsFactory(private val mContext: Context) :
 
     override fun onDataSetChanged() {
         val tokenIdentifier = Binder.clearCallingIdentity()
-        coroutineScope.launch {
+        runBlocking(Dispatchers.IO) {
             try {
-                dao.getLocalStory().map {
+                dao.getStoryForWidget().map {
                     val bitmap = try {
                         Glide.with(mContext)
                             .asBitmap()
@@ -56,7 +56,7 @@ internal class StoryRemoteViewsFactory(private val mContext: Context) :
     override fun getCount(): Int = mWidgetItems.size
 
     override fun getViewAt(position: Int): RemoteViews {
-        val rv = RemoteViews(mContext.packageName, R.layout.story_stack_widget)
+        val rv = RemoteViews(mContext.packageName, R.layout.widget_item)
         rv.setImageViewBitmap(R.id.front_image, mWidgetItems[position])
 
         return rv

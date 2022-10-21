@@ -6,12 +6,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.mystoryapp.databinding.ActivityLoginBinding
 import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.register.RegisterActivity
 import com.example.mystoryapp.ui.story.StoryActivity
+import com.example.mystoryapp.ui.upload.UploadViewModel
 import com.example.mystoryapp.utils.ViewModelFactory
 
 class LoginActivity : AppCompatActivity() {
@@ -22,8 +24,10 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val loginViewModel =
-            ViewModelProvider(this, ViewModelFactory(application, this))[LoginViewModel::class.java]
+        val factory: ViewModelFactory = ViewModelFactory.getInstance(this)
+        val loginViewModel : LoginViewModel by viewModels{
+            factory
+        }
 
         binding.apply {
             edLoginEmail.buttonSwitch()
@@ -33,8 +37,7 @@ class LoginActivity : AppCompatActivity() {
                 manifestLoading(true)
                 loginViewModel.login(
                     edLoginEmail.text.toString(),
-                    edLoginPassword.text.toString(),
-                    this@LoginActivity
+                    edLoginPassword.text.toString()
                 )
 
                 loginViewModel.getLoginResult().observe(this@LoginActivity) {
@@ -43,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
                         manifestLoading(false)
                         Intent(this@LoginActivity, StoryActivity::class.java).run {
                             startActivity(this)
-                            finish()
+                            finishAffinity()
                         }
                     }
                 }

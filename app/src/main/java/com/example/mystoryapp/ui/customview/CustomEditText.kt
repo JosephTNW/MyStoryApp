@@ -46,7 +46,6 @@ class CustomEditText : AppCompatEditText {
             }
 
             override fun afterTextChanged(s: Editable?) {
-
                 if (text != null && text?.isNotEmpty() == true) {
                     if (inputType == InputType.TYPE_CLASS_TEXT + InputType.TYPE_TEXT_VARIATION_PASSWORD) {
                         if (length() < 6) {

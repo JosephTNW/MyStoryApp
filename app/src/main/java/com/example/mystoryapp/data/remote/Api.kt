@@ -15,23 +15,23 @@ interface Api {
         @Field("name") name: String,
         @Field("email") email: String,
         @Field("password") password: String
-    ): Call<UsualResponse>
+    ): UsualResponse
 
     @FormUrlEncoded
     @POST("login")
     fun login(
         @Field("email") email: String,
         @Field("password") password: String
-    ): Call<LoginResponse>
+    ): LoginResponse
 
     @Multipart
     @POST("stories")
     fun addStory(
         @Part file: MultipartBody.Part,
         @Part("description") description: RequestBody
-    ): Call<UsualResponse>
+    ): UsualResponse
 
     @GET("stories")
     fun getStory(
-    ): Call<StoryGetResponse>
+    ): StoryGetResponse
 }

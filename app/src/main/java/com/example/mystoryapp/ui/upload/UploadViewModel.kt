@@ -9,11 +9,14 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Environment
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.data.local.room.StoryDao
 import com.example.mystoryapp.data.local.room.StoryDatabase
 import com.example.mystoryapp.data.remote.Client
+import com.example.mystoryapp.data.repository.StoryRepository
 import com.example.mystoryapp.data.response.UsualResponse
 import com.example.mystoryapp.utils.timeStamp
 import kotlinx.coroutines.CoroutineScope
@@ -26,112 +29,24 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.*
 
-class UploadViewModel(application: Application, context: Context) : AndroidViewModel(application) {
+class UploadViewModel(private val storyRepository: StoryRepository) : ViewModel() {
 
     val usualResponse = MutableLiveData<UsualResponse>()
     val errorMessage = MutableLiveData<String>()
-    private val pref = SharedPref(context)
 
-    private var storyDao: StoryDao?
-    private var storyDb: StoryDatabase?
-
-    init {
-        storyDb = StoryDatabase.getInstance(application)
-        storyDao = storyDb?.StoryDao()
+    fun sendStory(imgMultipart: MultipartBody.Part, desc: RequestBody) {
+        storyRepository.addStory(imgMultipart, desc)
     }
 
-    fun rotateBitmap(bitmap: Bitmap, isBackCamera: Boolean = false): Bitmap {
-        val matrix = Matrix()
-        return if (isBackCamera) {
-            matrix.postRotate(90f)
-            Bitmap.createBitmap(
-                bitmap,
-                0,
-                0,
-                bitmap.width,
-                bitmap.height,
-                matrix,
-                true
-            )
-        } else {
-            matrix.postRotate(-90f)
-            matrix.postScale(-1f, 1f, bitmap.width / 2f, bitmap.height / 2f)
-            Bitmap.createBitmap(
-                bitmap,
-                0,
-                0,
-                bitmap.width,
-                bitmap.height,
-                matrix,
-                true
-            )
-        }
-    }
-
-    fun uriToFile(img: Uri, context: Context): File {
-        val contentResolver: ContentResolver = context.contentResolver
-        val myFile = createTemp(context)
-
-        val inputStream = contentResolver.openInputStream(img) as InputStream
-        val outputStream: OutputStream = FileOutputStream(myFile)
-        val buf = ByteArray(1024)
-        var len: Int
-        while (inputStream.read(buf).also { len = it } > 0) outputStream.write(buf, 0, len)
-        outputStream.close()
-        inputStream.close()
-
-        return myFile
-    }
-
-    fun reduceFileSize(file: File): File {
-        val bitmap = BitmapFactory.decodeFile(file.path)
-        var compressQuality = 100
-        var streamLength: Int
-        do {
-            val bmpStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpStream)
-            val bmpPicByteArray = bmpStream.toByteArray()
-            streamLength = bmpPicByteArray.size
-            compressQuality -= 5
-        } while (streamLength > 1000000)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
-        return file
-    }
-
-    fun createTemp(context: Context): File {
-        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(timeStamp, ".jpg", storageDir)
-    }
-
-    fun sendStory(imgMultipart: MultipartBody.Part, desc: RequestBody, context: Context) {
-        val service = Client(context).instanceApi().addStory(imgMultipart, desc)
-        service.enqueue(object : Callback<UsualResponse> {
-            override fun onResponse(call: Call<UsualResponse>, response: Response<UsualResponse>) {
-                if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody != null) {
-                        val result = UsualResponse(
-                            responseBody.error,
-                            responseBody.message
-                        )
-                        usualResponse.postValue(result)
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<UsualResponse>, t: Throwable) {
-                errorMessage.postValue(t.message)
-            }
-        })
+    fun getResult() : LiveData<UsualResponse>{
+        return storyRepository.getResult()
     }
 
     fun resetLocalStory() {
-        CoroutineScope(Dispatchers.IO).launch {
-            storyDao?.clearStory()
-        }
+        storyRepository.clearLocalStory()
     }
 
     fun clearPrefs() {
-        pref.clearLoginInfo()
+        storyRepository.clearToken()
     }
 }

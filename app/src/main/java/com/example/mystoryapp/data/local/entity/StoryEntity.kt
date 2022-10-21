@@ -18,5 +18,14 @@ data class StoryEntity(
     val name: String,
 
     @field:ColumnInfo(name = "description")
-    val desc: String
+    val desc: String,
+
+    @field:ColumnInfo(name = "lon")
+    val lon: Double? = null,
+
+    @field:ColumnInfo(name = "lat")
+    val lat: Double? = null,
+
+    @field:ColumnInfo(name = "createdAt")
+    val createdAt: String? = null,
 ) : Serializable

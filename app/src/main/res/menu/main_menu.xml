@@ -3,14 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_logout"
-        android:icon="@drawable/logout"
-        android:title="@string/logout_button"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/menu_language"
         android:icon="@drawable/language_24"
         android:title="@string/language_button"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_map"
+        android:icon="@drawable/map_24"
+        android:title="@string/map_button"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_logout"
+        android:icon="@drawable/logout"
+        android:title="@string/logout_button"
         app:showAsAction="ifRoom" />
 </menu>

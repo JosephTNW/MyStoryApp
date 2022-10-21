@@ -35,8 +35,14 @@
     <string name="camera_fail">Kamera gagal muncul.</string>
     <string name="take_photo_desc">Tekan tombol ini untuk mengambil gambar.</string>
     <string name="front_image">Ini adalah tampak depan.</string>
+    <string name="choose_img">Pilih sebuah gambar.</string>
+    <string name="exit">Apakah kamu mau keluar dari aplikasi?</string>
+    <string name="exit_message">Tekan ya untuk menutup aplikasi!</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
     <string name="switch_camera_desc">Tekan tombol ini untuk mengganti kamera.</string>
-    <string name="no_permission">Aplikasi tidak dapat izin untuk membuka kamera.</string>
+    <string name="no_permission_camera">Aplikasi tidak dapat izin untuk membuka kamera.</string>
+    <string name="no_permission_location">Aplikasi tidak dapat izin untuk mengambil lokasimu.</string>
     <string name="no_file_yet">Mohon masukkan berkas terlebih dahulu.</string>
     <string name="add_button_desc">Tekan tombol ini untuk menambahkan ceritamu</string>
     <string name="logout_button">Keluar dari akun</string>
@@ -47,4 +53,8 @@
     <string name="empty_widget">Tidak ada data</string>
     <string name="add_widget">Tambahkan Widget</string>
     <string name="app_widget_description">SPANDUK STORY</string>
+    <string name="map_button">Cerita disekitarmu.</string>
+    <string name="title_activity_maps">Peta Cerita</string>
+    <string name="curr_location">Kamu berada disini</string>
+    <string name="GPS_off">Nyalakan pengaturan lokasimu untuk menggunakan fitur maps.</string>
 </resources>
