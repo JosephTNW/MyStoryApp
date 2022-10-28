@@ -13,6 +13,6 @@ object Injection {
         val database = StoryDatabase.getInstance(context)
         val dao = database.StoryDao()
         val sharedPref = SharedPref(context)
-        return StoryRepository.getInstance(apiService, dao, sharedPref)
+        return StoryRepository.getInstance(apiService, dao, database, sharedPref)
     }
 }

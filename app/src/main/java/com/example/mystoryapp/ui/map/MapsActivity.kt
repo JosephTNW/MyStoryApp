@@ -3,6 +3,7 @@ package com.example.mystoryapp.ui.map
 import android.content.ContentValues.TAG
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.mystoryapp.R
+import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.databinding.ActivityMapsBinding
 import com.example.mystoryapp.utils.ViewModelFactory
 import com.google.android.gms.common.api.ResolvableApiException
@@ -23,6 +25,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import java.util.concurrent.TimeUnit
 
@@ -32,13 +35,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallback: LocationCallback
-    private var allLatLng = ArrayList<LatLng>()
     private var boundsBuilder = LatLngBounds.Builder()
 
     private val factory: ViewModelFactory = ViewModelFactory.getInstance(this)
-    val mapViewModel : MapViewModel by viewModels{
+    private val mapViewModel : MapViewModel by viewModels{
         factory
+    }
+
+    private fun getData(){
+        mapViewModel.getStoryList().observe(this){
+            it.forEach { storyEntity ->
+                val latLng = LatLng(storyEntity.lat?:0.0, storyEntity.lon?:0.0)
+                mMap.addMarker(MarkerOptions().position(latLng).title(storyEntity.name))
+                boundsBuilder.include(latLng)
+            }
+
+            val bounds: LatLngBounds = boundsBuilder.build()
+            mMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(
+                    bounds,
+                    resources.displayMetrics.widthPixels,
+                    resources.displayMetrics.heightPixels,
+                    300
+                )
+            )
+        }
     }
 
     private val requestPermission =
@@ -46,10 +67,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityResultContracts.RequestMultiplePermissions()
         ){ permit ->
             when {
-                permit[android.Manifest.permission.ACCESS_COARSE_LOCATION] ?: false ->{
+                permit[android.Manifest.permission.ACCESS_COARSE_LOCATION] ?: false -> {
                     getMyLastLocation()
                 }
-                permit[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false ->{
+                permit[android.Manifest.permission.ACCESS_FINE_LOCATION] ?: false -> {
                     getMyLastLocation()
                 }
                 else -> {
@@ -130,13 +151,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
     }
 
+    private fun setMapStyle() {
+        try {
+            val success = mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+            if (!success){
+                Log.e(TAG, "Style parsing failed.")
+            }
+        } catch (exception: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find style, Error: ", exception)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -146,7 +177,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        mMap.uiSettings.isCompassEnabled = true
+        mMap.uiSettings.isMapToolbarEnabled = true
+        mMap.uiSettings.isIndoorLevelPickerEnabled = true
+        mMap.uiSettings.isZoomControlsEnabled = true
+
         getMyLastLocation()
         createLocationRequest()
+        getData()
+        setMapStyle()
     }
 }

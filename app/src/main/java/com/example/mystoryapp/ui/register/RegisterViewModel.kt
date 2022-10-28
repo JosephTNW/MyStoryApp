@@ -1,34 +1,29 @@
 package com.example.mystoryapp.ui.register
 
-import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.mystoryapp.data.SharedPref
-import com.example.mystoryapp.data.remote.Client
+import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.data.repository.StoryRepository
-import com.example.mystoryapp.data.response.LoginResponse
-import com.example.mystoryapp.data.response.LoginResult
 import com.example.mystoryapp.data.response.UsualResponse
-import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class RegisterViewModel(private val storyRepository: StoryRepository) : ViewModel() {
 
+    private lateinit var email: String
+    private lateinit var password: String
+    private lateinit var name: String
+
     fun sendRegistration(name: String, email: String, password: String) {
-        storyRepository.register(email, password, name)
+        this.password = password
+        this.name = name
+        this.email = email
     }
 
-    fun getRegResult(): LiveData<UsualResponse> {
-        return storyRepository.getResult()
+    fun getRegResult(): LiveData<Result<UsualResponse>> {
+        return storyRepository.register(email, password, name)
     }
 
-    fun login(email: String, password: String) {
-        storyRepository.login(email, password)
+    fun login(): LiveData<Result<UsualResponse>> {
+        return storyRepository.login(email, password)
     }
 
     fun getLoginInfo(): String? {

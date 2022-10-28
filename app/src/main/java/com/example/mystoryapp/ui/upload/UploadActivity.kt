@@ -1,9 +1,11 @@
 package com.example.mystoryapp.ui.upload
 
+import android.Manifest
 import android.content.Intent
 import android.content.Intent.ACTION_GET_CONTENT
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -19,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.mystoryapp.R
+import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.databinding.ActivityUploadBinding
 import com.example.mystoryapp.ui.camera.CameraActivity
 import com.example.mystoryapp.ui.customview.CustomEditText
@@ -29,12 +32,12 @@ import com.example.mystoryapp.utils.ViewModelFactory
 import com.example.mystoryapp.utils.reduceFileSize
 import com.example.mystoryapp.utils.rotateBitmap
 import com.example.mystoryapp.utils.uriToFile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
@@ -43,12 +46,15 @@ class UploadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUploadBinding
     private val uploadViewModel: UploadViewModel by viewModels()
     private var getFile: File? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var location: Location? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         val factory: ViewModelFactory = ViewModelFactory.getInstance(this)
         val uploadViewModel : UploadViewModel by viewModels{
             factory
@@ -90,17 +96,36 @@ class UploadActivity : AppCompatActivity() {
                         file.name,
                         reqImgFile
                     )
-                    uploadViewModel.sendStory(imgMultiPart, desc)
-                    uploadViewModel.getResult().observe(this@UploadActivity){
-                        Toast.makeText(this@UploadActivity, it.message, Toast.LENGTH_SHORT).show()
-                        if (!it.error && it.message != "success"){
-                            Intent(this@UploadActivity, StoryActivity::class.java).run {
-                                runBlocking(Dispatchers.IO) {
-                                    delay(5000L)
+                    val lat: RequestBody?
+                    val lon: RequestBody?
+                    if (location != null){
+                        lat = location?.latitude.toString().toRequestBody("text/plain".toMediaType())
+                        lon = location?.longitude.toString().toRequestBody("text/plain".toMediaType())
+                    } else{
+                        Toast.makeText(this@UploadActivity, resources.getString(R.string.no_location), Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    uploadViewModel.sendStory(imgMultiPart, desc, lat, lon)
+                    uploadViewModel.addStory().observe(this@UploadActivity){
+                        when (it) {
+                            is Result.Loading -> {
+                                binding.pbLoading.visibility = View.VISIBLE
+                            }
+                            is Result.Success -> {
+                                binding.pbLoading.visibility = View.GONE
+                                Toast.makeText(
+                                    this@UploadActivity,
+                                    it.data.message,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                Intent(this@UploadActivity, StoryActivity::class.java).run {
+                                    startActivity(this)
                                 }
-                                startActivity(this)
-                                manifestLoading(false)
-                                finishAffinity()
+                            }
+                            is Result.Error -> {
+                                binding.pbLoading.visibility = View.GONE
+                                Toast.makeText(this@UploadActivity, it.error, Toast.LENGTH_SHORT)
+                                    .show()
                             }
                         }
                     }
@@ -220,10 +245,64 @@ class UploadActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        getLocation()
+    }
+
+    private fun checkPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            when {
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false -> {
+                    // Precise location access granted.
+                    getLocation()
+                }
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false -> {
+                    // Only approximate location access granted.
+                    getLocation()
+                }
+                else -> {
+                    // No location access granted.
+                }
+            }
+        }
+
+    private fun getLocation() {
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION) &&
+            checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
+                if (loc != null) {
+                    this.location = loc
+                } else {
+                    Toast.makeText(
+                        this, getString(R.string.GPS_off), Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } else {
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
     companion object {
         const val CAMERA_X_RESULT = 0
 
-        private val REQUESTED_PERMISSIONS = arrayOf(android.Manifest.permission.CAMERA)
+        private val REQUESTED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         private const val REQUEST_CODE_PERMISSIONS = 10
     }
 }

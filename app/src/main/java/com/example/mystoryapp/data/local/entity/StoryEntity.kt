@@ -1,15 +1,17 @@
 package com.example.mystoryapp.data.local.entity
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.Serializable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "Story")
 data class StoryEntity(
-    @field:PrimaryKey(autoGenerate = true)
+    @field:PrimaryKey
     @field:ColumnInfo(name = "id")
-    var id: Int = 0,
+    val id: String,
 
     @field:ColumnInfo(name = "photoUrl")
     val photoUrl: String,
@@ -28,4 +30,4 @@ data class StoryEntity(
 
     @field:ColumnInfo(name = "createdAt")
     val createdAt: String? = null,
-) : Serializable
+) : Parcelable

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.example.mystoryapp.data.local.entity.StoryEntity
 import com.example.mystoryapp.data.response.GetStoryResult
 import com.example.mystoryapp.databinding.ActivityDetailBinding
 import com.example.mystoryapp.utils.Constants.DETAIL_STORY
@@ -21,10 +22,10 @@ class DetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         manifestLoading(true)
-        val info = intent.getParcelableExtra<GetStoryResult>(DETAIL_STORY) as GetStoryResult
+        val info = intent.getParcelableExtra<StoryEntity>(DETAIL_STORY) as StoryEntity
         manifestLoading(false)
         binding.apply {
-            tvDetailDescription.text = info.description
+            tvDetailDescription.text = info.desc
             tvDetailName.text = info.name
             Glide.with(this@DetailActivity)
                 .load(info.photoUrl)

@@ -2,12 +2,13 @@ package com.example.mystoryapp.data.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import androidx.lifecycle.map
+import androidx.paging.*
 import com.example.mystoryapp.data.SharedPref
 import com.example.mystoryapp.data.local.entity.StoryEntity
 import com.example.mystoryapp.data.local.room.StoryDao
+import com.example.mystoryapp.data.local.room.StoryDatabase
+import com.example.mystoryapp.data.paging.StoryRemoteMediator
 import com.example.mystoryapp.data.remote.Api
 import com.example.mystoryapp.data.response.UsualResponse
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +20,11 @@ import okhttp3.RequestBody
 class StoryRepository private constructor(
     private val apiService: Api,
     private val storyDao: StoryDao,
+    private val storyDatabase: StoryDatabase,
     private val sharedPref: SharedPref
 ) {
 
-    private val result = MutableLiveData<UsualResponse>()
-
-    fun login(email: String, password: String): LiveData<Result<UsualResponse>> = liveData {
+    fun login(email: String, password: String) = liveData {
         emit(Result.Loading)
         try {
             val response = apiService.login(email, password)
@@ -36,7 +36,7 @@ class StoryRepository private constructor(
                 response.error,
                 response.message
             )
-            result.postValue(loginStatus)
+            emit(Result.Success(loginStatus))
         } catch (e: Exception){
             Log.d("StoryRepository", "login: ${e.message.toString()}")
             emit(Result.Error(e.message.toString()))
@@ -51,7 +51,7 @@ class StoryRepository private constructor(
                 response.error,
                 response.message
             )
-            result.postValue(registerStatus)
+            emit(Result.Success(registerStatus))
         } catch (e: Exception) {
             Log.d("Story Repository", "register: ${e.message.toString()}")
             emit(Result.Error(e.message.toString()))
@@ -66,48 +66,39 @@ class StoryRepository private constructor(
         sharedPref.clearLoginInfo()
     }
 
-    fun getResult(): LiveData<UsualResponse> {
-        return result
-    }
-
     fun clearLocalStory(){
         CoroutineScope(Dispatchers.IO).launch{
             storyDao.clearStory()
         }
     }
 
-    fun getStory(): LiveData<Result<List<StoryEntity>>> = liveData {
-        emit(Result.Loading)
-        try {
-            val response = apiService.getStory()
-            val story = response.listStory
-            val storyList = story.map { list ->
-                StoryEntity(
-                    photoUrl = list.photoUrl,
-                    name = list.name,
-                    desc = list.description
-                )
+    fun getStories(): LiveData<PagingData<StoryEntity>>{
+        @OptIn(ExperimentalPagingApi::class)
+        return Pager(
+            config = PagingConfig(
+                pageSize = 5
+            ),
+            remoteMediator =
+            StoryRemoteMediator(storyDatabase, apiService),
+            pagingSourceFactory = {
+                storyDatabase.StoryDao().getPagingStories()
             }
-
-            storyDao.clearStory()
-            storyDao.addStory(storyList)
-        } catch (e: Exception) {
-            Log.d("StoryRepository", "getStory: ${e.message.toString()}")
-            emit(Result.Error(e.message.toString()))
-        }
-        val localData: LiveData<Result<List<StoryEntity>>> = storyDao.getLocalStory().map { Result.Success(it) }
-        emitSource(localData)
+        ).liveData
     }
 
-    fun addStory(file: MultipartBody.Part, description: RequestBody) = liveData{
+    fun getStoryFromDb(): LiveData<List<StoryEntity>> {
+        return storyDao.getLocalStory()
+    }
+
+    fun addStory(file: MultipartBody.Part, description: RequestBody, lat: RequestBody?, lon: RequestBody?) = liveData{
         emit(Result.Loading)
         try {
-            val response = apiService.addStory(file, description)
-            val addStatus = UsualResponse(
+            val response = apiService.addStory(file, description, lat, lon)
+            val uploadStatus = UsualResponse(
                 response.error,
-                response.message,
+                response.message
             )
-            result.postValue(addStatus)
+            emit(Result.Success(uploadStatus))
         } catch (e: Exception) {
             Log.d("StoryRepository", "addStory: ${e.message.toString()}")
             emit(Result.Error(e.message.toString()))
@@ -120,10 +111,11 @@ class StoryRepository private constructor(
         fun getInstance(
             apiService: Api,
             storyDao: StoryDao,
+            storyDatabase: StoryDatabase,
             sharedPref: SharedPref
         ) : StoryRepository =
             instance ?: synchronized(this) {
-                instance ?: StoryRepository(apiService, storyDao, sharedPref)
+                instance ?: StoryRepository(apiService, storyDao, storyDatabase, sharedPref)
             }.also { instance = it }
     }
 }

@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.databinding.ActivityLoginBinding
 import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.register.RegisterActivity
@@ -34,19 +35,27 @@ class LoginActivity : AppCompatActivity() {
             edLoginPassword.buttonSwitch()
 
             btnLogin.setOnClickListener {
-                manifestLoading(true)
                 loginViewModel.login(
                     edLoginEmail.text.toString(),
                     edLoginPassword.text.toString()
                 )
 
                 loginViewModel.getLoginResult().observe(this@LoginActivity) {
-                    Toast.makeText(this@LoginActivity, it.message, Toast.LENGTH_SHORT).show()
-                    if (!it.error && it.message == "success") {
-                        manifestLoading(false)
-                        Intent(this@LoginActivity, StoryActivity::class.java).run {
-                            startActivity(this)
-                            finishAffinity()
+                    when(it){
+                        is Result.Success ->{
+                            binding.pbLoading.visibility = View.GONE
+                            Toast.makeText(this@LoginActivity, it.data.message, Toast.LENGTH_SHORT).show()
+                            Intent(this@LoginActivity, StoryActivity::class.java).run {
+                                startActivity(this)
+                                finishAffinity()
+                            }
+                        }
+                        is Result.Error -> {
+                            binding.pbLoading.visibility = View.GONE
+                            Toast.makeText(this@LoginActivity, it.error, Toast.LENGTH_SHORT).show()
+                        }
+                        is Result.Loading -> {
+                            binding.pbLoading.visibility = View.VISIBLE
                         }
                     }
                 }
@@ -63,10 +72,6 @@ class LoginActivity : AppCompatActivity() {
     override fun onBackPressed() {
         finish()
         super.onBackPressed()
-    }
-
-    private fun manifestLoading(status: Boolean) {
-        binding.pbLoading.visibility = if (status) View.VISIBLE else View.GONE
     }
 
     private fun CustomEditText.buttonSwitch() {

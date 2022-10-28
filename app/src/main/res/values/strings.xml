@@ -56,4 +56,8 @@
     <string name="title_activity_maps">Story Map</string>
     <string name="curr_location">You are here</string>
     <string name="GPS_off">Turn on your location to use maps</string>
+    <string name="no_location">No location yet</string>
+    <string name="time">Time</string>
+    <string name="place">Place</string>
+    <string name="retry">Retry</string>
 </resources>

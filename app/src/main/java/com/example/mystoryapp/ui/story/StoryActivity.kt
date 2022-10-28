@@ -6,30 +6,25 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.util.Pair
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mystoryapp.R
 import com.example.mystoryapp.data.local.entity.StoryEntity
-import com.example.mystoryapp.data.response.GetStoryResult
 import com.example.mystoryapp.databinding.ActivityStoryBinding
 import com.example.mystoryapp.databinding.StoryListBinding
 import com.example.mystoryapp.ui.detail.DetailActivity
 import com.example.mystoryapp.ui.login.LoginActivity
+import com.example.mystoryapp.ui.map.MapsActivity
+import com.example.mystoryapp.ui.paging.LoadingStateAdapter
 import com.example.mystoryapp.ui.upload.UploadActivity
 import com.example.mystoryapp.utils.Constants
 import com.example.mystoryapp.utils.ViewModelFactory
 import kotlin.system.exitProcess
-import com.example.mystoryapp.data.repository.Result
-import com.example.mystoryapp.ui.map.MapsActivity
-import com.example.mystoryapp.ui.upload.UploadViewModel
 
 class StoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStoryBinding
@@ -46,47 +41,23 @@ class StoryActivity : AppCompatActivity() {
         val storyViewModel : StoryViewModel by viewModels{
             factory
         }
-        storyViewModel.getStoryList()
 
         adapter = StoryListAdapter()
-        storyViewModel.getResult().observe(this@StoryActivity) {
-            if (it != null) {
-                Toast.makeText(this@StoryActivity, it.message, Toast.LENGTH_SHORT).show()
-            }
-        }
 
         storyViewModel.getStoryList().observe(this) { result ->
-            if (result != null) {
-                when (result) {
-                    is Result.Loading -> {
-                        binding.pbLoading.visibility = View.VISIBLE
-                    }
-                    is Result.Success -> {
-                        binding.pbLoading.visibility = View.GONE
-                        val storyList = result.data
-                        adapter.submitList(storyList)
-                    }
-                    is Result.Error -> {
-                        binding.pbLoading.visibility = View.GONE
-                        Toast.makeText(
-                            this,
-                            "Terjadi Kesalahan" + result.error,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
+            adapter.submitData(lifecycle, result)
+
         }
 
-        binding.apply {
-            rvListStory.layoutManager = LinearLayoutManager(this@StoryActivity)
-            rvListStory.setHasFixedSize(true)
-            rvListStory.adapter = adapter
-            btnAddStory.setOnClickListener {
-                Intent(this@StoryActivity, UploadActivity::class.java).also {
-                    postStoryReload.launch(it)
+        binding.rvListStory.apply {
+            layoutManager = LinearLayoutManager(this@StoryActivity)
+            setHasFixedSize(true)
+            adapter = this@StoryActivity.adapter.withLoadStateFooter(
+                footer = LoadingStateAdapter{
+                    this@StoryActivity.adapter.retry()
                 }
-            }
+            )
+
         }
 
         adapter.setOnItemClickCallback(object : StoryListAdapter.OnItemClickCallback {
@@ -111,6 +82,11 @@ class StoryActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         getStories()
+        binding.btnAddStory.setOnClickListener {
+            Intent(this@StoryActivity, UploadActivity::class.java).also {
+                postStoryReload.launch(it)
+            }
+        }
     }
 
     override fun onResume() {

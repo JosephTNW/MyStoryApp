@@ -6,4 +6,5 @@ object Constants {
     const val TOKEN_KEY = "token_key"
     const val LOGIN_INFO = "login_info"
     const val NO_TOKEN = "no_token"
+    const val LOCATION = "1"
 }

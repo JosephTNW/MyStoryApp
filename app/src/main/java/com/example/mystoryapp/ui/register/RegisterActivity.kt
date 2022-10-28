@@ -8,12 +8,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.databinding.ActivityRegisterBinding
 import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.login.LoginActivity
 import com.example.mystoryapp.ui.story.StoryActivity
-import com.example.mystoryapp.ui.upload.UploadViewModel
 import com.example.mystoryapp.utils.Constants.NO_TOKEN
 import com.example.mystoryapp.utils.ViewModelFactory
 
@@ -31,7 +30,6 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         val token = registerViewModel.getLoginInfo()
-        manifestLoading(true)
 
         if (token != null) {
             if (token != NO_TOKEN) {
@@ -41,14 +39,11 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
 
-        manifestLoading(false)
-
         binding.apply {
             buttonSwitch(edRegisterName)
             buttonSwitch(edRegisterPassword)
             buttonSwitch(edRegisterEmail)
             btnRegister.setOnClickListener {
-                manifestLoading(true)
                 registerViewModel.sendRegistration(
                     edRegisterName.text.toString(),
                     edRegisterEmail.text.toString(),
@@ -56,24 +51,28 @@ class RegisterActivity : AppCompatActivity() {
                 )
 
                 registerViewModel.getRegResult().observe(this@RegisterActivity) {
-                    Toast.makeText(
-                        this@RegisterActivity,
-                        it.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    if (!it.error && it.message == "User Created") {
-                        registerViewModel.login(
-                            edRegisterEmail.text.toString(),
-                            edRegisterPassword.text.toString()
-                        )
-                        Intent(this@RegisterActivity, StoryActivity::class.java).run {
-                            startActivity(this)
-                            finishAffinity()
+                    when (it) {
+                        is Result.Loading -> {
+                            binding.pbLoading.visibility = View.VISIBLE
+                        }
+                        is Result.Success -> {
+                            binding.pbLoading.visibility = View.GONE
+                            Toast.makeText(
+                                this@RegisterActivity,
+                                it.data.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            Intent(this@RegisterActivity, LoginActivity::class.java).run {
+                                startActivity(this)
+                            }
+                        }
+                        is Result.Error -> {
+                            binding.pbLoading.visibility = View.GONE
+                            Toast.makeText(this@RegisterActivity, it.error, Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
                 }
-                manifestLoading(false)
             }
 
             btnLogin.setOnClickListener {
@@ -87,10 +86,6 @@ class RegisterActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         onDestroy()
-    }
-
-    private fun manifestLoading(status: Boolean) {
-        binding.pbLoading.visibility = if (status) View.VISIBLE else View.GONE
     }
 
     private fun buttonSwitch(et: CustomEditText) {

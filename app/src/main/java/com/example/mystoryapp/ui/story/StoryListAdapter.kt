@@ -2,16 +2,15 @@ package com.example.mystoryapp.ui.story
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.mystoryapp.data.local.entity.StoryEntity
-import com.example.mystoryapp.data.response.GetStoryResult
 import com.example.mystoryapp.databinding.StoryListBinding
 
 class StoryListAdapter :
-    ListAdapter<StoryEntity, StoryListAdapter.StoryViewHolder>(DIFFUTIL_CALLBACK) {
+    PagingDataAdapter<StoryEntity, StoryListAdapter.StoryViewHolder>(DIFFUTIL_CALLBACK) {
 
     private var onItemClickCallback: OnItemClickCallback? = null
 
@@ -35,6 +34,7 @@ class StoryListAdapter :
                     .load(getStory.photoUrl)
                     .into(ivItemPhoto)
                 tvItemName.text = getStory.name
+                tvItemTime.text = getStory.createdAt
             }
         }
     }
@@ -45,11 +45,10 @@ class StoryListAdapter :
     }
 
     override fun onBindViewHolder(holder: StoryViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    override fun getItemCount(): Int {
-        return currentList.size
+        val result = getItem(position)
+        if (result != null) {
+            holder.bind(result)
+        }
     }
 
     companion object {

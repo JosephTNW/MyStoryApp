@@ -57,4 +57,8 @@
     <string name="title_activity_maps">Peta Cerita</string>
     <string name="curr_location">Kamu berada disini</string>
     <string name="GPS_off">Nyalakan pengaturan lokasimu untuk menggunakan fitur maps.</string>
+    <string name="no_location">Lokasi belum ada</string>
+    <string name="time">Waktu</string>
+    <string name="place">Tempat</string>
+    <string name="retry">Coba Lagi</string>
 </resources>
