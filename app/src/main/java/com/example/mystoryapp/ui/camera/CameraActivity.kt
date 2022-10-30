@@ -16,8 +16,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.mystoryapp.R
 import com.example.mystoryapp.databinding.ActivityCameraBinding
-import com.example.mystoryapp.utils.timeStamp
 import com.example.mystoryapp.ui.upload.UploadActivity
+import com.example.mystoryapp.utils.Utils.timeStamp
 import java.io.File
 
 class CameraActivity : AppCompatActivity() {

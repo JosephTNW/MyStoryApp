@@ -78,7 +78,20 @@ dependencies {
     implementation "androidx.paging:paging-runtime-ktx:3.1.1"
     implementation 'androidx.room:room-paging:2.4.3'
 
-    //Testing
+    //TESTING
+
+    //mockito
+    testImplementation 'org.mockito:mockito-core:4.4.0'
+    testImplementation 'org.mockito:mockito-inline:4.4.0'
+
+    //InstantTaskExecutorRule
+    testImplementation "androidx.arch.core:core-testing:2.1.0" // InstantTaskExecutorRule
+    androidTestImplementation "androidx.arch.core:core-testing:2.1.0" //InstantTaskExecutorRule
+
+    //Main Coroutine Rule
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1" //main coroutine rule
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1" //TestDispatcher
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

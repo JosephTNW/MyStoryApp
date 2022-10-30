@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.mystoryapp.data.local.entity.StoryEntity
 import com.example.mystoryapp.databinding.StoryListBinding
+import com.example.mystoryapp.utils.Utils.formatDate
 
 class StoryListAdapter :
     PagingDataAdapter<StoryEntity, StoryListAdapter.StoryViewHolder>(DIFFUTIL_CALLBACK) {
@@ -34,7 +35,7 @@ class StoryListAdapter :
                     .load(getStory.photoUrl)
                     .into(ivItemPhoto)
                 tvItemName.text = getStory.name
-                tvItemTime.text = getStory.createdAt
+                tvItemTime.text = getStory.createdAt?.formatDate()
             }
         }
     }
@@ -52,7 +53,7 @@ class StoryListAdapter :
     }
 
     companion object {
-        private val DIFFUTIL_CALLBACK = object : DiffUtil.ItemCallback<StoryEntity>() {
+        val DIFFUTIL_CALLBACK = object : DiffUtil.ItemCallback<StoryEntity>() {
             override fun areItemsTheSame(
                 oldItem: StoryEntity,
                 newItem: StoryEntity

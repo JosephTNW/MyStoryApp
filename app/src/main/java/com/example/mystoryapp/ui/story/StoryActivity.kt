@@ -46,7 +46,6 @@ class StoryActivity : AppCompatActivity() {
 
         storyViewModel.getStoryList().observe(this) { result ->
             adapter.submitData(lifecycle, result)
-
         }
 
         binding.rvListStory.apply {

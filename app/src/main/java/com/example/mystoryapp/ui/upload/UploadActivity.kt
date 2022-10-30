@@ -28,10 +28,10 @@ import com.example.mystoryapp.ui.customview.CustomEditText
 import com.example.mystoryapp.ui.login.LoginActivity
 import com.example.mystoryapp.ui.map.MapsActivity
 import com.example.mystoryapp.ui.story.StoryActivity
+import com.example.mystoryapp.utils.Utils.reduceFileSize
+import com.example.mystoryapp.utils.Utils.rotateBitmap
+import com.example.mystoryapp.utils.Utils.uriToFile
 import com.example.mystoryapp.utils.ViewModelFactory
-import com.example.mystoryapp.utils.reduceFileSize
-import com.example.mystoryapp.utils.rotateBitmap
-import com.example.mystoryapp.utils.uriToFile
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import okhttp3.MediaType.Companion.toMediaType

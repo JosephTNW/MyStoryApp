@@ -20,7 +20,7 @@ data class StoryEntity(
     val name: String,
 
     @field:ColumnInfo(name = "description")
-    val desc: String,
+    val desc: String? = null,
 
     @field:ColumnInfo(name = "lon")
     val lon: Double? = null,

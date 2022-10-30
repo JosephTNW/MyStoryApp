@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
-class StoryRepository private constructor(
+class StoryRepository(
     private val apiService: Api,
     private val storyDao: StoryDao,
     private val storyDatabase: StoryDatabase,
@@ -30,7 +30,7 @@ class StoryRepository private constructor(
             val response = apiService.login(email, password)
             val loginResult = response.loginResult
             if (loginResult != null) {
-                sharedPref.saveLoginInfo(loginResult.token)
+                loginResult.token?.let { sharedPref.saveLoginInfo(it) }
             }
             val loginStatus = UsualResponse(
                 response.error,

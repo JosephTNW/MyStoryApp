@@ -14,11 +14,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.mystoryapp.R
-import com.example.mystoryapp.data.repository.Result
 import com.example.mystoryapp.databinding.ActivityMapsBinding
 import com.example.mystoryapp.utils.ViewModelFactory
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -53,10 +55,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val bounds: LatLngBounds = boundsBuilder.build()
             mMap.animateCamera(
                 CameraUpdateFactory.newLatLngBounds(
-                    bounds,
-                    resources.displayMetrics.widthPixels,
-                    resources.displayMetrics.heightPixels,
-                    300
+                    bounds, 15
                 )
             )
         }
